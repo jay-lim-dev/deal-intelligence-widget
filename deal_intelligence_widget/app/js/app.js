@@ -71,6 +71,7 @@ function clearStatus() {
 ZOHO.embeddedApp.on('PageLoad', function(data) {
   const recordId = data.EntityId;
 
+  // Deal fields — drives the spinner/content/error state for the whole panel
   ZOHO.CRM.API.getRecord({ Entity: 'Deals', RecordID: recordId })
     .then(
       function(response) {
@@ -81,10 +82,31 @@ ZOHO.embeddedApp.on('PageLoad', function(data) {
           showOverviewState('error');
         }
       },
-      function() {
-        showOverviewState('error');
-      }
+      function() { showOverviewState('error'); }
     );
+
+  // Stage field metadata + stage history fire in parallel.
+  // buildTimeline only runs once both have resolved.
+  var stageMap    = null;
+  var historyData = null;
+
+  function tryBuildTimeline() {
+    if (stageMap !== null && historyData !== null) buildTimeline(historyData, stageMap);
+  }
+
+  ZOHO.CRM.META.getFields({ Entity: 'Deals' }).then(
+    function(r) { stageMap = buildStageMap(r); tryBuildTimeline(); },
+    function()  { stageMap = {};               tryBuildTimeline(); }
+  );
+
+  ZOHO.CRM.API.getRelatedRecords({
+    Entity:      'Deals',
+    RecordID:    recordId,
+    RelatedList: 'Stage_History'
+  }).then(
+    function(r) { historyData = (r && r.data) ? r.data : []; tryBuildTimeline(); },
+    function()  { historyData = [];                           tryBuildTimeline(); }
+  );
 });
 
 ZOHO.embeddedApp.init();
@@ -123,4 +145,95 @@ function showOverviewState(state) {
   document.getElementById('overview-spinner').classList.toggle('hidden', state !== 'loading');
   document.getElementById('overview-content').classList.toggle('hidden', state !== 'content');
   document.getElementById('overview-error').classList.toggle('hidden',   state !== 'error');
+}
+
+// ─── Stage Timeline ──────────────────────────────────────────────────────────
+
+function buildTimeline(entries, stageMap) {
+  const container = document.getElementById('stage-timeline');
+  stageMap = stageMap || {};
+
+  const valid = entries.filter(function(e) {
+    return e.Stage && (e.Last_Modified_Time || e.Modified_Time);
+  });
+
+  if (valid.length === 0) {
+    container.innerHTML = '<p class="timeline-placeholder">No stage history found.</p>';
+    return;
+  }
+
+  // Sort descending — most recent entry first
+  const sorted = valid
+    .map(function(e) {
+      // Stage holds a picklist record ID — resolve it via the field metadata map
+      var stageId   = (e.Stage && typeof e.Stage === 'object') ? e.Stage.id : String(e.Stage);
+      var stageName = stageMap[stageId] || e.Stage;
+      return { stage: stageName, date: new Date(e.Last_Modified_Time || e.Modified_Time) };
+    })
+    .sort(function(a, b) { return b.date - a.date; });
+
+  container.innerHTML = sorted.map(function(entry, index) {
+    const isActive   = index === 0;
+    const prevDate   = isActive ? null : sorted[index - 1].date;
+    const durationMs = isActive ? null : (prevDate - entry.date);
+
+    return (
+      '<div class="vt-node' + (isActive ? ' active' : '') + '">' +
+        '<div class="vt-left">' +
+          '<div class="vt-dot"></div>' +
+          '<div class="vt-line"></div>' +
+        '</div>' +
+        '<div class="vt-content">' +
+          '<div class="vt-stage">' + esc(entry.stage) + '</div>' +
+          '<div class="vt-date">Entered ' + formatDate(entry.date) + '</div>' +
+          (isActive
+            ? '<div class="vt-badge">Current</div>'
+            : '<div class="vt-duration">Spent ' + formatDuration(durationMs) + '</div>') +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+// Builds a {stageId: stageName} map from the Deals field metadata response.
+function buildStageMap(metaResponse) {
+  var map    = {};
+  var fields = (metaResponse && metaResponse.fields) ? metaResponse.fields : [];
+  for (var i = 0; i < fields.length; i++) {
+    if (fields[i].api_name === 'Stage') {
+      var values = fields[i].pick_list_values || [];
+      for (var j = 0; j < values.length; j++) {
+        var v = values[j];
+        if (v.id) map[String(v.id)] = v.display_value || v.actual_value;
+      }
+      break;
+    }
+  }
+  return map;
+}
+
+// Escapes HTML special characters to prevent XSS from CRM data.
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatDate(date) {
+  var d = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  var t = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return d + ' · ' + t;
+}
+
+function formatDuration(ms) {
+  var days = Math.floor(ms / 86400000);
+  if (days < 1) {
+    var hours = Math.floor(ms / 3600000);
+    return hours < 1 ? 'less than an hour' : hours === 1 ? '1 hour' : hours + ' hours';
+  }
+  if (days < 30)  return days === 1   ? '1 day'   : days + ' days';
+  var months = Math.round(days / 30.4);
+  return months === 1 ? '1 month' : months + ' months';
 }

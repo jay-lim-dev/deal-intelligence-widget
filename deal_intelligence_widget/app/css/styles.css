@@ -129,82 +129,125 @@ html, body {
   font-style: italic;
 }
 
-/* ─── Overview: Stage Timeline ──────────────────────────────── */
+/* ─── Overview: Vertical Stage Timeline ─────────────────────── */
 
-/* Wrapper scrolls horizontally if there are many stages */
-.timeline-scroll {
-  overflow-x: auto;
-  padding-bottom: 8px;
-}
-
-.timeline-track {
+.v-timeline {
   display: flex;
-  align-items: flex-start;
-  min-width: 420px;
+  flex-direction: column;
+  /* Cap height so 10+ stages don't overflow the modal — scrolls within this box */
+  max-height: 360px;
+  overflow-y: auto;
+  /* Prevent content jumping when the scrollbar appears */
+  padding-right: 4px;
 }
 
-.stage-step {
-  flex: 1;
+/* Thin, unobtrusive scrollbar (WebKit/Blink — Chrome, Edge, Safari) */
+.v-timeline::-webkit-scrollbar       { width: 4px; }
+.v-timeline::-webkit-scrollbar-track { background: transparent; }
+.v-timeline::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+.v-timeline::-webkit-scrollbar-thumb:hover { background: #bbb; }
+
+.timeline-placeholder {
+  font-size: 13px;
+  color: #bbb;
+  font-style: italic;
+  padding: 4px 0 16px;
+}
+
+.vt-node {
+  display: flex;
+  gap: 14px;
+}
+
+/* Left column: dot + connecting line */
+.vt-left {
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
-}
-
-/* Connector line — runs from center of this dot to center of the next */
-.stage-step:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 10px; /* vertical center of the 20px dot */
-  left: 50%;
-  width: 100%;
-  height: 2px;
-  background: #e0e0e0;
-  z-index: 0;
-}
-
-.stage-step.completed:not(:last-child)::after {
-  background: #1b74e4;
-}
-
-.stage-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid #e0e0e0;
-  background: #fff;
-  position: relative;
-  z-index: 1; /* sit on top of the connector lines */
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   flex-shrink: 0;
+  width: 16px;
 }
 
-.stage-step.completed .stage-dot {
-  background: #1b74e4;
-  border-color: #1b74e4;
+.vt-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #d0d0d0;
+  flex-shrink: 0;
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+  transition: background 0.15s, box-shadow 0.15s;
 }
 
-/* Active: hollow with bold ring and a soft glow */
-.stage-step.active .stage-dot {
-  background: #fff;
-  border-color: #1b74e4;
-  border-width: 3px;
-  box-shadow: 0 0 0 4px rgba(27, 116, 228, 0.14);
+.vt-line {
+  width: 2px;
+  flex: 1;
+  min-height: 12px;
+  background: #ebebeb;
+  margin: 5px 0 0;
 }
 
-.stage-label {
-  margin-top: 10px;
-  font-size: 11px;
-  color: #aaa;
-  text-align: center;
-  max-width: 72px;
-  line-height: 1.35;
+.vt-node:last-child .vt-line {
+  display: none;
 }
 
-.stage-step.completed .stage-label,
-.stage-step.active .stage-label {
-  color: #333;
+/* Right column: content */
+.vt-content {
+  padding-bottom: 22px;
+  min-width: 0;
+}
+
+.vt-node:last-child .vt-content {
+  padding-bottom: 0;
+}
+
+.vt-stage {
+  font-size: 13px;
   font-weight: 600;
+  color: #2a2a2a;
+  line-height: 1.3;
+  /* Wrap long names rather than overflow — break-word handles single long tokens */
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.vt-date {
+  font-size: 12px;
+  color: #999;
+  margin-top: 3px;
+}
+
+.vt-duration {
+  font-size: 11px;
+  color: #bbb;
+  margin-top: 4px;
+}
+
+/* Active (current) node */
+.vt-node.active .vt-dot {
+  width: 13px;
+  height: 13px;
+  background: #1b74e4;
+  margin-top: 3px;
+  box-shadow: 0 0 0 4px rgba(27, 116, 228, 0.15);
+}
+
+.vt-node.active .vt-stage {
+  color: #1b74e4;
+}
+
+.vt-badge {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1b74e4;
+  background: rgba(27, 116, 228, 0.1);
+  border-radius: 10px;
 }
 
 /* ─── Messaging: Form ───────────────────────────────────────── */
