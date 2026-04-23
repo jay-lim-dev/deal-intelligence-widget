@@ -1,0 +1,351 @@
+/* ─── Reset & Base ──────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  /* Zoho CRM uses Lato; fall back to common system fonts */
+  font-family: Lato, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  /* Prevent a horizontal scrollbar from appearing inside the iframe */
+  overflow-x: hidden;
+}
+
+/* ─── Widget Container ──────────────────────────────────────── */
+
+.widget-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ─── Tab Bar ───────────────────────────────────────────────── */
+
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  background: #fff;
+  border-bottom: 2px solid #e8e8e8;
+  /* Stay visible when content scrolls */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tab-btn {
+  position: relative;
+  padding: 14px 18px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: color 0.15s;
+}
+
+/* Blue underline indicator for the active tab */
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.tab-btn.active {
+  color: #1b74e4;
+}
+
+.tab-btn.active::after {
+  background: #1b74e4;
+}
+
+.tab-btn:hover:not(.active) {
+  color: #333;
+}
+
+/* ─── Tab Panels ────────────────────────────────────────────── */
+
+.tab-panel {
+  display: none;
+  padding: 24px 20px 32px;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* ─── Shared: Section Title ─────────────────────────────────── */
+
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #aaa;
+  margin-bottom: 16px;
+}
+
+/* ─── Overview: Fields Grid ─────────────────────────────────── */
+
+.fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 40px;
+  margin-bottom: 36px;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #aaa;
+  margin-bottom: 5px;
+}
+
+.field-value {
+  font-size: 14px;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.field-value.placeholder {
+  color: #ccc;
+  font-style: italic;
+}
+
+/* ─── Overview: Stage Timeline ──────────────────────────────── */
+
+/* Wrapper scrolls horizontally if there are many stages */
+.timeline-scroll {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.timeline-track {
+  display: flex;
+  align-items: flex-start;
+  min-width: 420px;
+}
+
+.stage-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Connector line — runs from center of this dot to center of the next */
+.stage-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 10px; /* vertical center of the 20px dot */
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #e0e0e0;
+  z-index: 0;
+}
+
+.stage-step.completed:not(:last-child)::after {
+  background: #1b74e4;
+}
+
+.stage-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #e0e0e0;
+  background: #fff;
+  position: relative;
+  z-index: 1; /* sit on top of the connector lines */
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+}
+
+.stage-step.completed .stage-dot {
+  background: #1b74e4;
+  border-color: #1b74e4;
+}
+
+/* Active: hollow with bold ring and a soft glow */
+.stage-step.active .stage-dot {
+  background: #fff;
+  border-color: #1b74e4;
+  border-width: 3px;
+  box-shadow: 0 0 0 4px rgba(27, 116, 228, 0.14);
+}
+
+.stage-label {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #aaa;
+  text-align: center;
+  max-width: 72px;
+  line-height: 1.35;
+}
+
+.stage-step.completed .stage-label,
+.stage-step.active .stage-label {
+  color: #333;
+  font-weight: 600;
+}
+
+/* ─── Messaging: Form ───────────────────────────────────────── */
+
+.messaging-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+.form-input {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #333;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.form-input:focus {
+  border-color: #1b74e4;
+  background: #fff;
+}
+
+/* Read-only fields (pre-populated from CRM) */
+.form-input[readonly] {
+  background: #f2f4f7;
+  color: #666;
+  cursor: default;
+  border-color: #e4e4e4;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.55;
+}
+
+/* Character counter sits flush-right below the textarea */
+.char-count {
+  font-size: 11px;
+  color: #bbb;
+  text-align: right;
+  margin-top: -12px;
+  transition: color 0.15s;
+}
+
+.char-count.warning {
+  color: #e67e22;
+}
+
+.char-count.over {
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+/* ─── Messaging: Actions ────────────────────────────────────── */
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.btn {
+  padding: 9px 22px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.btn-primary {
+  background: #1b74e4;
+  color: #fff;
+  border-color: #1b74e4;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1560c4;
+  border-color: #1560c4;
+}
+
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #555;
+  border-color: #d4d4d4;
+}
+
+.btn-secondary:hover {
+  background: #f4f4f4;
+}
+
+/* ─── Messaging: Status Message ─────────────────────────────── */
+
+.status-msg {
+  display: none;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.status-msg.success {
+  display: block;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.status-msg.error {
+  display: block;
+  background: #fdecea;
+  color: #c62828;
+  border: 1px solid #f5c6c2;
+}
