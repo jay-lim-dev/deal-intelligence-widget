@@ -349,3 +349,67 @@ textarea.form-input {
   color: #c62828;
   border: 1px solid #f5c6c2;
 }
+
+/* ─── Utility ───────────────────────────────────────────────── */
+
+.hidden {
+  display: none !important;
+}
+
+/* ─── Overview: Loading Spinner ─────────────────────────────── */
+
+.spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  gap: 14px;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #e8e8e8;
+  border-top-color: #1b74e4;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner-text {
+  font-size: 13px;
+  color: #bbb;
+}
+
+/* ─── Overview: Error State ─────────────────────────────────── */
+
+.overview-error {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #999;
+  line-height: 1.5;
+}
+
+/* ─── Overview: Empty Field Value ───────────────────────────── */
+
+.field-value.empty {
+  color: #ccc;
+  font-style: italic;
+}
+
+/* ─── Overview: Deal Name full-width row ────────────────────── */
+
+.field-span-2 {
+  grid-column: 1 / -1;
+}
+
+.field-span-2 .field-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+}
