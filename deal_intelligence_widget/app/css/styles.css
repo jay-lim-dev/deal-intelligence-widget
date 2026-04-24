@@ -92,12 +92,23 @@ html, body {
 /* ─── Shared: Section Title ─────────────────────────────────── */
 
 .section-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #aaa;
-  margin-bottom: 16px;
+  letter-spacing: 0.1em;
+  color: #c0c4cc;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Hairline extending to the right of the label */
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #eef0f3;
 }
 
 /* ─── Overview: Fields Grid ─────────────────────────────────── */
@@ -105,28 +116,34 @@ html, body {
 .fields-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px 40px;
-  margin-bottom: 36px;
+  gap: 16px 24px;
+  margin-bottom: 20px;
+  background: #f8f9fb;
+  border: 1px solid #eef0f3;
+  border-radius: 10px;
+  padding: 16px;
 }
 
 .field-label {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #aaa;
-  margin-bottom: 5px;
+  letter-spacing: 0.07em;
+  color: #b8bcc8;
+  margin-bottom: 3px;
 }
 
 .field-value {
-  font-size: 14px;
-  color: #1a1a1a;
+  font-size: 13px;
+  color: #2a2a2a;
+  font-weight: 500;
   line-height: 1.4;
 }
 
 .field-value.placeholder {
   color: #ccc;
   font-style: italic;
+  font-weight: 400;
 }
 
 /* ─── Overview: Vertical Stage Timeline ─────────────────────── */
@@ -134,11 +151,12 @@ html, body {
 .v-timeline {
   display: flex;
   flex-direction: column;
-  /* Cap height so 10+ stages don't overflow the modal — scrolls within this box */
   max-height: 360px;
   overflow-y: auto;
-  /* Prevent content jumping when the scrollbar appears */
-  padding-right: 4px;
+  background: #f8f9fb;
+  border: 1px solid #eef0f3;
+  border-radius: 10px;
+  padding: 14px 10px 14px 16px; /* tighter right padding for scrollbar */
 }
 
 /* Thin, unobtrusive scrollbar (WebKit/Blink — Chrome, Edge, Safari) */
@@ -456,10 +474,13 @@ textarea.form-input {
 
 .field-span-2 {
   grid-column: 1 / -1;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e8eaef;
+  margin-bottom: 2px;
 }
 
 .field-span-2 .field-value {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #111;
 }
