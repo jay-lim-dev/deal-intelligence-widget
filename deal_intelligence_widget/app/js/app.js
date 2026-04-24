@@ -13,44 +13,6 @@ tabBtns.forEach(btn => {
   });
 });
 
-// ─── Provider Toggle ─────────────────────────────────────────────────────────
-
-document.querySelectorAll('.provider-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    var provider = btn.dataset.provider;
-    if (provider === activeProvider) return;
-
-    activeProvider = provider;
-    document.querySelectorAll('.provider-btn').forEach(function(b) {
-      b.classList.toggle('active', b.dataset.provider === provider);
-    });
-
-    // Reset chat window and reload from new provider
-    var chatLoading  = document.getElementById('chat-loading');
-    var chatMessages = document.getElementById('chat-messages');
-    chatMessages.innerHTML = '';
-    chatMessages.classList.add('hidden');
-    chatLoading.classList.remove('hidden');
-    lastChatDate = null;
-    if (currentRecordId) loadSMSHistory(currentRecordId);
-  });
-});
-
-// ─── Refresh Button ──────────────────────────────────────────────────────────
-
-document.getElementById('btn-refresh').addEventListener('click', function() {
-  if (!currentRecordId) return;
-  var btn = this;
-  btn.classList.add('spinning');
-  var chatMessages = document.getElementById('chat-messages');
-  chatMessages.innerHTML = '';
-  chatMessages.classList.add('hidden');
-  document.getElementById('chat-loading').classList.remove('hidden');
-  lastChatDate = null;
-  loadSMSHistory(currentRecordId);
-  setTimeout(function() { btn.classList.remove('spinning'); }, 600);
-});
-
 // ─── Messaging: Character Count ─────────────────────────────────────────────
 
 const toNumber  = document.getElementById('to-number');
@@ -62,34 +24,11 @@ const statusMsg = document.getElementById('status-msg');
 const SMS_MAX   = 160;
 
 // Set by populateMessaging once the record loads; gates the Send button.
-var mobileNumber    = null;
+var mobileNumber  = null;
 // Tracks the date of the last separator rendered; prevents duplicate separators.
-var lastChatDate    = null;
-// Stored on PageLoad so the provider toggle can reload history.
-var currentRecordId = null;
-// Active messaging provider key.
-var activeProvider  = 'smsmagic';
+var lastChatDate  = null;
 
 const FROM_NUMBER = '14355000394';
-
-var PROVIDERS = {
-  smsmagic: {
-    relatedList: 'SMS_History',
-    fields:      { text: 'smsmagic4__Text', direction: 'smsmagic4__Direction', time: 'Created_Time' },
-    sendFn:      'sendsmsmagic',
-    buildArgs:   function(to, msg) {
-      return { recipientNum: parseInt(to.replace(/\D/g, ''), 10), msgContent: msg };
-    }
-  },
-  twilio: {
-    relatedList: 'Twilio_SMS_History',
-    fields:      { text: 'Text', direction: 'Direction', time: 'Message_Time' },
-    sendFn:      'sendTwilioSMS',
-    buildArgs:   function(to, msg) {
-      return { fromNumber: FROM_NUMBER, toNumber: to, msg: msg };
-    }
-  }
-};
 
 smsBody.addEventListener('input', () => {
   const len = smsBody.value.length;
@@ -116,18 +55,20 @@ btnClear.addEventListener('click', () => {
 // ─── Messaging: Send ────────────────────────────────────────────────────────
 
 btnSend.addEventListener('click', function() {
-  var provider = PROVIDERS[activeProvider];
-  var sentText = smsBody.value;
-
   btnSend.disabled    = true;
   btnSend.textContent = 'Sending…';
   clearStatus();
 
-  ZOHO.CRM.FUNCTIONS.execute(provider.sendFn, {
-    arguments: JSON.stringify(provider.buildArgs(mobileNumber, sentText))
+  ZOHO.CRM.FUNCTIONS.execute('sendTwilioSMS', {
+    arguments: JSON.stringify({
+      fromNumber: FROM_NUMBER,
+      toNumber:   mobileNumber,
+      msg:        smsBody.value
+    })
   })
   .then(function(data) {
     if (data && data.code === 'success') {
+      var sentText = smsBody.value;
       smsBody.value = '';
       charCount.textContent = '0 / ' + SMS_MAX;
       charCount.classList.remove('warning', 'over');
@@ -160,8 +101,7 @@ function clearStatus() {
 // ─── Zoho SDK: PageLoad ──────────────────────────────────────────────────────
 
 ZOHO.embeddedApp.on('PageLoad', function(data) {
-  const recordId  = data.EntityId;
-  currentRecordId = recordId;
+  const recordId = data.EntityId;
 
   // Deal fields — drives the spinner/content/error state for the whole panel
   ZOHO.CRM.API.getRecord({ Entity: 'Deals', RecordID: recordId })
@@ -356,18 +296,21 @@ function formatDuration(ms) {
 // ─── Chat: SMS History ───────────────────────────────────────────────────────
 
 function loadSMSHistory(recordId) {
-  var relatedList = PROVIDERS[activeProvider].relatedList;
   ZOHO.CRM.API.getRelatedRecords({
     Entity:      'Deals',
     RecordID:    recordId,
-    RelatedList: relatedList,
+    RelatedList: 'Twilio_SMS_History',
     page:        1,
     per_page:    200
   }).then(
     function(response) {
+      console.log('[SMS History] response:', response);
       renderChatHistory((response && response.data) ? response.data : []);
     },
-    function() { renderChatHistory([]); }
+    function(err) {
+      console.error('[SMS History] error:', err);
+      renderChatHistory([]);
+    }
   );
 }
 
@@ -385,17 +328,16 @@ function renderChatHistory(records) {
     return new Date(a.Message_Time) - new Date(b.Message_Time);
   });
 
-  var fields = PROVIDERS[activeProvider].fields;
   lastChatDate = null;
   var html = '';
   records.forEach(function(r) {
-    var date    = new Date(r[fields.time]);
+    var date    = new Date(r.Message_Time);
     var dateStr = date.toDateString();
     if (dateStr !== lastChatDate) {
       html += buildDateSeparator(date);
       lastChatDate = dateStr;
     }
-    html += buildBubble(r[fields.text], r[fields.direction], r[fields.time]);
+    html += buildBubble(r.Text, r.Direction, r.Message_Time);
   });
   chatMessages.innerHTML = html;
 
