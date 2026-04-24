@@ -24,7 +24,9 @@ const statusMsg = document.getElementById('status-msg');
 const SMS_MAX   = 160;
 
 // Set by populateMessaging once the record loads; gates the Send button.
-var mobileNumber = null;
+var mobileNumber  = null;
+// Tracks the date of the last separator rendered; prevents duplicate separators.
+var lastChatDate  = null;
 
 const FROM_NUMBER = '14355000394';
 
@@ -66,10 +68,11 @@ btnSend.addEventListener('click', function() {
   })
   .then(function(data) {
     if (data && data.code === 'success') {
-      showStatus('success', 'Message sent to ' + mobileNumber + '.');
+      var sentText = smsBody.value;
       smsBody.value = '';
       charCount.textContent = '0 / ' + SMS_MAX;
       charCount.classList.remove('warning', 'over');
+      appendChatBubble(sentText, 'OUT', new Date());
     } else {
       showStatus('error', 'Failed to send. Please try again.');
     }
@@ -114,6 +117,8 @@ ZOHO.embeddedApp.on('PageLoad', function(data) {
       },
       function() { showOverviewState('error'); }
     );
+
+  loadSMSHistory(recordId);
 
   // Stage field metadata + stage history fire in parallel.
   // buildTimeline only runs once both have resolved.
@@ -286,4 +291,107 @@ function formatDuration(ms) {
   if (days < 30)  return days === 1   ? '1 day'   : days + ' days';
   var months = Math.round(days / 30.4);
   return months === 1 ? '1 month' : months + ' months';
+}
+
+// ─── Chat: SMS History ───────────────────────────────────────────────────────
+
+function loadSMSHistory(recordId) {
+  ZOHO.CRM.API.getRelatedRecords({
+    Entity:      'Deals',
+    RecordID:    recordId,
+    RelatedList: 'Twilio_SMS_History',
+    page:        1,
+    per_page:    200
+  }).then(
+    function(response) {
+      console.log('[SMS History] response:', response);
+      renderChatHistory((response && response.data) ? response.data : []);
+    },
+    function(err) {
+      console.error('[SMS History] error:', err);
+      renderChatHistory([]);
+    }
+  );
+}
+
+function renderChatHistory(records) {
+  document.getElementById('chat-loading').classList.add('hidden');
+  var chatMessages = document.getElementById('chat-messages');
+  chatMessages.classList.remove('hidden');
+
+  if (!records.length) {
+    chatMessages.innerHTML = '<p class="chat-empty">No messages yet.</p>';
+    return;
+  }
+
+  records.sort(function(a, b) {
+    return new Date(a.Message_Time) - new Date(b.Message_Time);
+  });
+
+  lastChatDate = null;
+  var html = '';
+  records.forEach(function(r) {
+    var date    = new Date(r.Message_Time);
+    var dateStr = date.toDateString();
+    if (dateStr !== lastChatDate) {
+      html += buildDateSeparator(date);
+      lastChatDate = dateStr;
+    }
+    html += buildBubble(r.Text, r.Direction, r.Message_Time);
+  });
+  chatMessages.innerHTML = html;
+
+  scrollChatToBottom();
+}
+
+function appendChatBubble(text, direction, date) {
+  var chatMessages = document.getElementById('chat-messages');
+  var empty = chatMessages.querySelector('.chat-empty');
+  if (empty) empty.remove();
+
+  // Insert a date separator if the day has changed since the last message
+  var dateStr = date.toDateString();
+  if (dateStr !== lastChatDate) {
+    chatMessages.insertAdjacentHTML('beforeend', buildDateSeparator(date));
+    lastChatDate = dateStr;
+  }
+
+  chatMessages.insertAdjacentHTML('beforeend', buildBubble(text, direction, date.toISOString()));
+  scrollChatToBottom();
+}
+
+function buildBubble(text, direction, timestamp) {
+  var isOut   = direction === 'OUT';
+  var timeStr = timestamp ? formatChatTime(new Date(timestamp)) : '';
+  return (
+    '<div class="msg-row ' + (isOut ? 'out' : 'in') + '">' +
+      '<div class="msg-bubble ' + (isOut ? 'out' : 'in') + '">' +
+        '<div class="msg-text">' + esc(text || '') + '</div>' +
+        '<div class="msg-time">' + timeStr + '</div>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function scrollChatToBottom() {
+  var win = document.getElementById('chat-window');
+  if (win) win.scrollTop = win.scrollHeight;
+}
+
+function formatChatTime(date) {
+  if (isNaN(date)) return '';
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function buildDateSeparator(date) {
+  return '<div class="date-separator"><span>' + formatSeparatorDate(date) + '</span></div>';
+}
+
+function formatSeparatorDate(date) {
+  var now       = new Date();
+  var yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.toDateString() === now.toDateString())       return 'Today';
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }

@@ -76,40 +76,44 @@
 
     <!-- ── Messaging Panel ──────────────────────────────────── -->
     <section class="tab-panel" id="panel-messaging">
+      <div class="chat-layout">
 
-      <div class="messaging-form">
-
-        <div class="form-group">
-          <label class="form-label">To</label>
-          <input
-            type="text"
-            class="form-input"
-            id="to-number"
-            readonly
-            value="Loading…"
-          >
+        <!-- Recipient header -->
+        <div class="chat-header">
+          <div class="form-group">
+            <label class="form-label">To</label>
+            <input type="text" class="form-input" id="to-number" readonly value="Loading…">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="sms-body">Message</label>
+        <!-- Chat history window -->
+        <div class="chat-window" id="chat-window">
+          <div id="chat-loading" class="chat-spinner">
+            <div class="spinner"></div>
+            <p class="spinner-text">Loading messages…</p>
+          </div>
+          <div id="chat-messages" class="chat-messages hidden"></div>
+        </div>
+
+        <!-- Compose bar -->
+        <div class="chat-compose">
+          <div id="status-msg" class="status-msg"></div>
           <textarea
             class="form-input"
             id="sms-body"
             placeholder="Type your message here…"
             maxlength="160"
           ></textarea>
-          <div class="char-count" id="char-count">0 / 160</div>
-        </div>
-
-        <div id="status-msg" class="status-msg"></div>
-
-        <div class="form-actions">
-          <button class="btn btn-secondary" id="btn-clear">Clear</button>
-          <button class="btn btn-primary"   id="btn-send" disabled>Send SMS</button>
+          <div class="compose-footer">
+            <span class="char-count" id="char-count">0 / 160</span>
+            <div class="compose-actions">
+              <button class="btn btn-secondary" id="btn-clear">Clear</button>
+              <button class="btn btn-primary"   id="btn-send" disabled>Send SMS</button>
+            </div>
+          </div>
         </div>
 
       </div>
-
     </section>
 
   </div><!-- /.widget-container -->

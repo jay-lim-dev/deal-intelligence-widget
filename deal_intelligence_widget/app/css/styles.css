@@ -316,7 +316,7 @@ textarea.form-input {
   font-size: 11px;
   color: #bbb;
   text-align: right;
-  margin-top: -12px;
+  margin-top: 5px;
   transition: color 0.15s;
 }
 
@@ -462,4 +462,174 @@ textarea.form-input {
   font-size: 16px;
   font-weight: 600;
   color: #111;
+}
+
+/* ─── Messaging: Chat Layout ────────────────────────────────── */
+
+/* Widget container needs full height for chat flex to work */
+.widget-container {
+  height: 100%;
+}
+
+/* Override panel padding and block display for messaging */
+#panel-messaging {
+  padding: 0;
+  overflow: hidden;
+}
+
+#panel-messaging.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.chat-header {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.chat-header .form-group {
+  gap: 4px;
+}
+
+/* ─── Chat Window ───────────────────────────────────────────── */
+
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  background: #f5f6f8;
+  min-height: 0;
+}
+
+.chat-window::-webkit-scrollbar       { width: 4px; }
+.chat-window::-webkit-scrollbar-track { background: transparent; }
+.chat-window::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+.chat-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  gap: 12px;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-empty {
+  text-align: center;
+  font-size: 13px;
+  color: #bbb;
+  font-style: italic;
+  padding: 24px 0;
+}
+
+.date-separator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #bbb;
+  letter-spacing: 0.04em;
+}
+
+.date-separator::before,
+.date-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e8e8e8;
+}
+
+/* ─── Chat Bubbles ──────────────────────────────────────────── */
+
+.msg-row {
+  display: flex;
+}
+
+.msg-row.out { justify-content: flex-end; }
+.msg-row.in  { justify-content: flex-start; }
+
+.msg-bubble {
+  max-width: 72%;
+  padding: 9px 13px 7px;
+  line-height: 1.45;
+}
+
+.msg-bubble.out {
+  background: #1b74e4;
+  color: #fff;
+  border-radius: 16px 16px 4px 16px;
+}
+
+.msg-bubble.in {
+  background: #fff;
+  color: #333;
+  border-radius: 16px 16px 16px 4px;
+  border: 1px solid #e4e4e4;
+}
+
+.msg-text {
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.msg-time {
+  font-size: 10px;
+  margin-top: 4px;
+  opacity: 0.6;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.msg-bubble.in .msg-time {
+  text-align: left;
+}
+
+/* ─── Chat Compose Bar ──────────────────────────────────────── */
+
+.chat-compose {
+  flex-shrink: 0;
+  padding: 10px 20px 16px;
+  border-top: 1px solid #eee;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-compose textarea.form-input {
+  min-height: 72px;
+  max-height: 120px;
+  resize: none;
+  line-height: 1.5;
+}
+
+.compose-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compose-footer .char-count {
+  margin-top: 0;
+}
+
+.compose-actions {
+  display: flex;
+  gap: 10px;
 }
