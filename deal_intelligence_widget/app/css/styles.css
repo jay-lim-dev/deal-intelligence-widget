@@ -470,6 +470,113 @@ textarea.form-input {
   font-style: italic;
 }
 
+/* ─── Overview: Selected Debts ──────────────────────────────── */
+
+.debts-section {
+  margin-bottom: 20px;
+}
+
+.debts-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: #f8f9fb;
+  border: 1px solid #eef0f3;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.debts-trigger:hover {
+  background: #f2f3f7;
+}
+
+.debts-trigger.open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.chevron-icon {
+  flex-shrink: 0;
+  color: #aaa;
+  transition: transform 0.2s;
+}
+
+.debts-trigger.open .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.debts-list {
+  border: 1px solid #eef0f3;
+  border-top: none;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  overflow: hidden;
+}
+
+.debt-card {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f1f4;
+  background: #fff;
+}
+
+.debt-card:last-child {
+  border-bottom: none;
+}
+
+.debt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.debt-creditor {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2a2a2a;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.debt-amount {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex-shrink: 0;
+}
+
+.debt-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.debt-tag {
+  font-size: 11px;
+  color: #777;
+  background: #f2f3f6;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.debt-min {
+  font-size: 11px;
+  color: #aaa;
+  margin-left: auto;
+}
+
 /* ─── Overview: Deal Name full-width row ────────────────────── */
 
 .field-span-2 {

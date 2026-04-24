@@ -13,6 +13,15 @@ tabBtns.forEach(btn => {
   });
 });
 
+// ─── Selected Debts Toggle ───────────────────────────────────────────────────
+
+document.getElementById('debts-trigger').addEventListener('click', function() {
+  var list   = document.getElementById('debts-list');
+  var isOpen = !list.classList.contains('hidden');
+  list.classList.toggle('hidden', isOpen);
+  this.classList.toggle('open', !isOpen);
+});
+
 // ─── Provider Toggle ─────────────────────────────────────────────────────────
 
 document.querySelectorAll('.provider-btn').forEach(function(btn) {
@@ -178,6 +187,15 @@ ZOHO.embeddedApp.on('PageLoad', function(data) {
       function() { showOverviewState('error'); }
     );
 
+  var dealId = Array.isArray(recordId) ? recordId[0] : recordId;
+
+  ZOHO.CRM.API.coql({
+    select_query: "select Creditor_Named, Amount, Account_Type, Minimum_Payment, Applicant_Type from Selected_Debts where Parent_Id = '" + dealId + "'"
+  }).then(
+    function(r) { populateDebts(r && r.data ? r.data : []); },
+    function()  { populateDebts([]); }
+  );
+
   loadSMSHistory(recordId);
 
   // Stage field metadata + stage history fire in parallel.
@@ -215,9 +233,44 @@ ZOHO.embeddedApp.init();
 function populateOverview(record) {
   setField('field-deal-name',       record.Deal_Name);
   setField('field-deal-owner',      record.Owner ? record.Owner.name : null);
-  setField('field-total',           formatUSD(record.Total));
+  setField('field-state',            record.State);
   setField('field-monthly-payment', formatUSD(record.Monthly_Payment));
   setField('field-total-savings',   formatUSD(record.Total_Program_Savings));
+}
+
+function populateDebts(debts) {
+  var section = document.getElementById('debts-section');
+  var summary = document.getElementById('debts-summary');
+  var list    = document.getElementById('debts-list');
+
+  if (!debts.length) {
+    section.classList.add('hidden');
+    return;
+  }
+
+  section.classList.remove('hidden');
+
+  var total = debts.reduce(function(sum, d) {
+    return sum + (parseFloat(d.Amount) || 0);
+  }, 0);
+
+  summary.textContent = 'Selected Debts  ·  ' + (formatUSD(total) || '$0.00') + ' total  ·  ' + debts.length + (debts.length !== 1 ? ' accounts' : ' account');
+
+  list.innerHTML = debts.map(function(d) {
+    return (
+      '<div class="debt-card">' +
+        '<div class="debt-header">' +
+          '<span class="debt-creditor">' + esc(d.Creditor_Named || '—') + '</span>' +
+          '<span class="debt-amount">'   + (formatUSD(d.Amount) || '—')  + '</span>' +
+        '</div>' +
+        '<div class="debt-meta">' +
+          (d.Account_Type   ? '<span class="debt-tag">' + esc(d.Account_Type)   + '</span>' : '') +
+          (d.Applicant_Type ? '<span class="debt-tag">' + esc(d.Applicant_Type) + '</span>' : '') +
+          '<span class="debt-min">Min ' + (formatUSD(d.Minimum_Payment) || '—') + '/mo</span>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
 }
 
 // ─── Messaging: Populate ─────────────────────────────────────────────────────
