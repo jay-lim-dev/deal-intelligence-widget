@@ -1,4 +1,4 @@
-# Deal Intelligence Widget
+# Deal Desk
 
 A Zoho CRM widget that surfaces key deal information and messaging tools directly on a Deal record. Triggered by a custom button, it opens a panel with two tabs: an **Overview** for deal fields and stage history, and a **Messaging** tab for sending SMS via Twilio.
 
