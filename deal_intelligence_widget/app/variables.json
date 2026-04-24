@@ -1,0 +1,14 @@
+{
+  "account_sid": {
+    "value": "",
+    "description": "Twilio Account SID (starts with AC)"
+  },
+  "auth_token": {
+    "value": "",
+    "description": "Twilio Auth Token"
+  },
+  "from_number": {
+    "value": "",
+    "description": "Twilio sender phone number in E.164 format (e.g. +1XXXXXXXXXX)"
+  }
+}
