@@ -298,6 +298,13 @@ html, body {
   border-color: #e4e4e4;
 }
 
+/* To field when the Deal has no Mobile number */
+.form-input.no-number {
+  color: #c0392b;
+  background: #fef9f9;
+  border-color: #f5c6c2;
+}
+
 textarea.form-input {
   resize: vertical;
   min-height: 120px;

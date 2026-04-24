@@ -15,12 +15,18 @@ tabBtns.forEach(btn => {
 
 // ─── Messaging: Character Count ─────────────────────────────────────────────
 
+const toNumber  = document.getElementById('to-number');
 const smsBody   = document.getElementById('sms-body');
 const charCount = document.getElementById('char-count');
 const btnSend   = document.getElementById('btn-send');
 const btnClear  = document.getElementById('btn-clear');
 const statusMsg = document.getElementById('status-msg');
 const SMS_MAX   = 160;
+
+// Set by populateMessaging once the record loads; gates the Send button.
+var mobileNumber = null;
+
+const FROM_NUMBER = '14355000394';
 
 smsBody.addEventListener('input', () => {
   const len = smsBody.value.length;
@@ -31,7 +37,7 @@ smsBody.addEventListener('input', () => {
   } else if (len >= SMS_MAX * 0.85) {
     charCount.classList.add('warning');
   }
-  btnSend.disabled = len === 0;
+  btnSend.disabled = len === 0 || !mobileNumber;
 });
 
 // ─── Messaging: Clear ───────────────────────────────────────────────────────
@@ -44,14 +50,37 @@ btnClear.addEventListener('click', () => {
   clearStatus();
 });
 
-// ─── Messaging: Send (stub — Twilio integration wired in next) ───────────────
+// ─── Messaging: Send ────────────────────────────────────────────────────────
 
-btnSend.addEventListener('click', () => {
-  showStatus('success', 'Message sent successfully.');
-  smsBody.value = '';
-  charCount.textContent = `0 / ${SMS_MAX}`;
-  charCount.classList.remove('warning', 'over');
-  btnSend.disabled = true;
+btnSend.addEventListener('click', function() {
+  btnSend.disabled    = true;
+  btnSend.textContent = 'Sending…';
+  clearStatus();
+
+  ZOHO.CRM.FUNCTIONS.execute('sendTwilioSMS', {
+    arguments: JSON.stringify({
+      fromNumber: FROM_NUMBER,
+      toNumber:   mobileNumber,
+      msg:        smsBody.value
+    })
+  })
+  .then(function(data) {
+    if (data && data.code === 'success') {
+      showStatus('success', 'Message sent to ' + mobileNumber + '.');
+      smsBody.value = '';
+      charCount.textContent = '0 / ' + SMS_MAX;
+      charCount.classList.remove('warning', 'over');
+    } else {
+      showStatus('error', 'Failed to send. Please try again.');
+    }
+  })
+  .catch(function() {
+    showStatus('error', 'Failed to send. Please try again.');
+  })
+  .finally(function() {
+    btnSend.textContent = 'Send SMS';
+    btnSend.disabled    = smsBody.value.length === 0 || !mobileNumber;
+  });
 });
 
 // ─── Messaging: Helpers ──────────────────────────────────────────────────────
@@ -77,6 +106,7 @@ ZOHO.embeddedApp.on('PageLoad', function(data) {
       function(response) {
         if (response && response.data && response.data.length > 0) {
           populateOverview(response.data[0]);
+          populateMessaging(response.data[0]);
           showOverviewState('content');
         } else {
           showOverviewState('error');
@@ -95,8 +125,12 @@ ZOHO.embeddedApp.on('PageLoad', function(data) {
   }
 
   ZOHO.CRM.META.getFields({ Entity: 'Deals' }).then(
-    function(r) { stageMap = buildStageMap(r); tryBuildTimeline(); },
-    function()  { stageMap = {};               tryBuildTimeline(); }
+    function(r) {
+      try   { stageMap = buildStageMap(r); }
+      catch (e) { stageMap = {}; }
+      tryBuildTimeline();
+    },
+    function() { stageMap = {}; tryBuildTimeline(); }
   );
 
   ZOHO.CRM.API.getRelatedRecords({
@@ -119,6 +153,22 @@ function populateOverview(record) {
   setField('field-total',           formatUSD(record.Total));
   setField('field-monthly-payment', formatUSD(record.Monthly_Payment));
   setField('field-total-savings',   formatUSD(record.Total_Program_Savings));
+}
+
+// ─── Messaging: Populate ─────────────────────────────────────────────────────
+
+function populateMessaging(record) {
+  if (record.Mobile) {
+    mobileNumber       = record.Mobile;
+    toNumber.value     = record.Mobile;
+    toNumber.classList.remove('no-number');
+  } else {
+    mobileNumber       = null;
+    toNumber.value     = 'No mobile number on this record';
+    toNumber.classList.add('no-number');
+  }
+  // Re-evaluate in case the user typed before the record finished loading
+  btnSend.disabled = smsBody.value.length === 0 || !mobileNumber;
 }
 
 // Sets text content and toggles the .empty class for null/blank values.
